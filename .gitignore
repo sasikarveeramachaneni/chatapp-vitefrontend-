@@ -1,0 +1,15 @@
+# Root
+.env
+
+# Backend
+backend/.env
+backend/.env.docker
+__pycache__/
+*.pyc
+
+# Frontend
+frontend/.env
+node_modules/
+
+# Docker
+*.log
