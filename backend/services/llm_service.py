@@ -25,7 +25,8 @@ async def get_ai_response_with_context(messages: list):
         "model": MODEL_NAME,
         "messages": messages
     }
-
+    # print("=======================")
+    # print(messages)
     async with httpx.AsyncClient() as client:
         response = await client.post(
             OPENROUTER_URL,

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Chat Application
 
 A full-stack web application for interactive AI-powered conversations with chat history management, topic extraction, and embedding-based search capabilities.
@@ -289,3 +290,6 @@ For issues and questions, please open an issue in the repository.
 ---
 
 **Last Updated**: January 2026
+=======
+# ai-chat-docker
+>>>>>>> 21c049f579e0fa49e008ee13fe1b24e809c11318

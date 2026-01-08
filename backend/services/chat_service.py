@@ -26,45 +26,6 @@ def create_chat_session(user_id: int):
     return chat_id
 
 
-# def store_message(chat_id: str, sender: str, text: str):
-#     query = """
-#     MATCH (c:ChatSession {chat_id: $chat_id})
-#     CREATE (m:Message {
-#         sender: $sender,
-#         text: $text,
-#         timestamp: $timestamp
-#     })
-#     CREATE (c)-[:HAS_MESSAGE]->(m)
-#     """
-
-#     with get_neo4j_session() as session:
-#         session.run(
-#             query,
-#             chat_id=chat_id,
-#             sender=sender,
-#             text=text,
-#             timestamp=str(datetime.utcnow())
-#         )
-
-# def store_message(chat_id: str, user_id: int, sender: str, text: str):
-#     query = """
-#     MATCH (u:User {user_id: $user_id})-[:HAS_CHAT]->(c:ChatSession {chat_id: $chat_id})
-#     CREATE (m:Message {
-#         sender: $sender,
-#         text: $text,
-#         timestamp: $timestamp
-#     })
-#     CREATE (c)-[:HAS_MESSAGE]->(m)
-#     """
-#     with get_neo4j_session() as session:
-#         session.run(
-#             query,
-#             user_id=user_id,
-#             chat_id=chat_id,
-#             sender=sender,
-#             text=text,
-#             timestamp=str(datetime.utcnow())
-#         )
 
 def store_message(chat_id: str, user_id: int, sender: str, text: str):
     query = """
@@ -110,27 +71,6 @@ def store_message(chat_id: str, user_id: int, sender: str, text: str):
 
 
 
-# def get_chat_history(chat_id: str):
-#     query = """
-#     MATCH (c:ChatSession {chat_id: $chat_id})-[:HAS_MESSAGE]->(m:Message)
-#     RETURN DISTINCT m
-#     ORDER BY m.timestamp ASC
-#     """
-
-#     messages = []
-
-#     with get_neo4j_session() as session:
-#         result = session.run(query, chat_id=chat_id)
-
-#         for record in result:
-#             m = record["m"]
-#             messages.append({
-#                 "sender": m["sender"],
-#                 "text": m["text"],
-#                 "timestamp": m["timestamp"]
-#             })
-
-#     return messages
 
 
 def get_chat_history(chat_id: str, user_id: int):
@@ -188,6 +128,35 @@ def link_message_to_topics(
             sequence=message_sequence,
             topics=topics
         )
+
+def get_first_user_messages(chat_id: str, user_id: int, limit: int = 3):
+    """
+    Returns the first N user messages in a chat (ordered by sequence).
+    """
+    query = """
+    MATCH (u:User {user_id: $user_id})
+          -[:HAS_CHAT]->(c:ChatSession {chat_id: $chat_id})
+          -[:HAS_MESSAGE]->(m:Message {sender: 'user'})
+    RETURN m.text AS text
+    ORDER BY m.sequence ASC
+    LIMIT $limit
+    """
+
+    messages = []
+
+    with get_neo4j_session() as session:
+        result = session.run(
+            query,
+            user_id=user_id,
+            chat_id=chat_id,
+            limit=limit
+        )
+
+        for record in result:
+            messages.append(record["text"])
+
+    return messages
+
 
 def update_chat_title_if_empty(
     chat_id: str,

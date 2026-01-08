@@ -1,20 +1,4 @@
-# import re
 
-# COMMON_TOPICS = [
-#     "JWT", "Authentication", "FastAPI", "Neo4j",
-#     "LLM", "Transformer", "API", "Database",
-#     "Graph", "Security", "Python"
-# ]
-
-# def extract_topics(text: str) -> list[str]:
-#     text_lower = text.lower()
-#     found = []
-
-#     for topic in COMMON_TOPICS:
-#         if re.search(rf"\b{topic.lower()}\b", text_lower):
-#             found.append(topic)
-
-#     return list(set(found))
 
 import json
 from services.llm_service import get_ai_response_with_context

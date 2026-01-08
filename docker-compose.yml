@@ -170,7 +170,7 @@ services:
       - ai-chat-network
 
   frontend:
-    build: ./frontend
+    build: ./frontend-vite
     container_name: ai-frontend
     restart: always
     ports:

@@ -12,12 +12,53 @@ from services.llm_service import get_ai_response_with_context
 # from services.topic_service import extract_topics
 from services.chat_service import link_message_to_topics
 from services.vector_service import store_embedding, search_similar
-from services.title_service import generate_chat_title
+# from services.title_service import generate_chat_title
 from services.chat_service import update_chat_title_if_empty
 from services.topic_service import extract_topics_llm
+from services.title_service import generate_title_from_messages
+from services.chat_service import get_first_user_messages
 
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
+
+# async def process_message_background(
+#     chat_id: str,
+#     user_id: int,
+#     user_seq: int,
+#     user_text: str,
+#     ai_seq: int,
+#     ai_text: str
+# ):
+#     # Topics
+#     topics = await extract_topics_llm(user_text)
+
+#     if topics:
+#         link_message_to_topics(
+#             chat_id=chat_id,
+#             user_id=user_id,
+#             message_sequence=user_seq,
+#             topics=topics
+#         )
+
+#         title = generate_chat_title(topics)
+#         update_chat_title_if_empty(
+#             chat_id=chat_id,
+#             user_id=user_id,
+#             title=title
+#         )
+
+#     # Embeddings (API-based)
+#     await store_embedding(
+#         user_id=user_id,
+#         message_id=f"{chat_id}:{user_seq}",
+#         text=user_text
+#     )
+
+#     await store_embedding(
+#         user_id=user_id,
+#         message_id=f"{chat_id}:{ai_seq}",
+#         text=ai_text
+#     )
 
 async def process_message_background(
     chat_id: str,
@@ -27,7 +68,7 @@ async def process_message_background(
     ai_seq: int,
     ai_text: str
 ):
-    # Topics
+    # 🔹 Topics (UNCHANGED)
     topics = await extract_topics_llm(user_text)
 
     if topics:
@@ -38,14 +79,23 @@ async def process_message_background(
             topics=topics
         )
 
-        title = generate_chat_title(topics)
-        update_chat_title_if_empty(
+    # 🔹 Generate title ONLY after 3rd user message
+        user_messages = get_first_user_messages(
             chat_id=chat_id,
             user_id=user_id,
-            title=title
+            limit=3
         )
+        if len(user_messages) == 3:
+            title = await generate_title_from_messages(user_messages)
+            print("=  ====================")
+            print(title)
+            update_chat_title_if_empty(
+                chat_id=chat_id,
+                user_id=user_id,
+                title=title
+            )
 
-    # Embeddings (API-based)
+    # 🔹 Embeddings (UNCHANGED)
     await store_embedding(
         user_id=user_id,
         message_id=f"{chat_id}:{user_seq}",
@@ -147,29 +197,6 @@ async def send_message(
         text=payload.message
     )
 
-    # 6️⃣ Topics → Knowledge Graph
-    # topics = extract_topics(payload.message)
-    # link_message_to_topics(
-    #     chat_id=chat_id,
-    #     user_id=current_user.id,
-    #     message_sequence=user_seq,
-    #     topics=topics
-    # )
-
-    # if topics:
-    #     title = generate_chat_title(topics)
-    #     update_chat_title_if_empty(
-    #         chat_id=chat_id,
-    #         user_id=current_user.id,
-    #         title=title
-    #     )
-
-    # # 7️⃣ Store USER embedding
-    # await store_embedding(
-    #     user_id=current_user.id,
-    #     message_id=f"{chat_id}:{user_seq}",
-    #     text=payload.message
-    # )
 
     # 8️⃣ Store AI message
     ai_seq = store_message(
