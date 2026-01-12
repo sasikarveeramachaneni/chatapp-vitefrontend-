@@ -87,7 +87,7 @@ async def process_message_background(
         )
         if len(user_messages) == 3:
             title = await generate_title_from_messages(user_messages)
-            print("=  ====================")
+            print("=======================")
             print(title)
             update_chat_title_if_empty(
                 chat_id=chat_id,

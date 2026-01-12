@@ -11,7 +11,7 @@ A full-stack web application for interactive AI-powered conversations with chat 
 - **Topic Extraction**: Automatic topic detection using LLM
 - **Vector Embeddings**: Semantic search across chat messages
 - **Chat Management**: Create, retrieve, and manage multiple chat sessions
-- **Auto-generated Titles**: Automatic chat session titles based on first message
+- **Auto-generated Titles**: Automatic chat session titles based on first 3 messages
 
 ## Architecture
 
@@ -33,6 +33,9 @@ The application is built with a microservices architecture using Docker Compose:
 ### Services
 ```
 ├── backend/
+│   ├── .env                 # Backend env variables (local)
+│   ├── .env.example         # Backend env template
+│   ├── .env.docker          # Backend env for Docker
 │   ├── main.py              # FastAPI app initialization
 │   ├── auth.py              # Authentication logic
 │   ├── database.py          # MySQL connection
@@ -49,247 +52,241 @@ The application is built with a microservices architecture using Docker Compose:
 │       ├── topic_service.py # Topic extraction
 │       └── title_service.py # Chat title generation
 │
-└── frontend/
-    ├── public/              # Static assets
-    └── src/
-        ├── pages/
-        │   ├── Auth.js      # Login/Register page
-        │   ├── Chat.js      # Main chat interface
-        │   └── ChatSidebar.js # Chat history sidebar
-        └── services/
-            └── api.js       # API client
-```
+├── frontend-vite/
+│   ├── .env                 # Frontend env variables (local)
+│   ├── .env.example         # Frontend env template
+│   ├── .gitignore
+│   ├── Dockerfile
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── nginx.conf
+│   ├── package.json
+│   ├── README.md
+│   ├── vite.config.js
+│   ├── public/
+│   │   └── robots.txt
+│   └── src/
+│       ├── App.css
+│       ├── App.jsx
+│       ├── index.css
+│       ├── main.jsx
+│       ├── assets/
+│       ├── pages/
+│       │   ├── Auth.css
+│       │   ├── Auth.jsx
+│       │   ├── Chat.css
+│       │   ├── Chat.jsx
+│       │   └── ChatSidebar.jsx
+│       └── services/
+│           └── api.js
+│
+├── .env                     # Root env variables (Docker Compose)
+├── .env.example             # Root env template
+├── docker-compose.yml
+├── README.md
+└── package.json
+   # AI Chat — Repository Overview
 
-## Prerequisites
+   This repository contains a full-stack AI chat application: a FastAPI backend that manages users, chat sessions, embeddings, and topics; and a React frontend (Vite) for an interactive chat UI. The project is configured to run locally or via Docker Compose.
 
-- Docker & Docker Compose
-- Python 3.8+ (if running locally)
-- Node.js 14+ (if running locally)
+   ## Quick Links
+   - Frontend (Vite): [frontend-vite](frontend-vite)
+   - Backend: [backend](backend)
+   - Compose config: [docker-compose.yml](docker-compose.yml)
 
-## Setup & Installation
+   ## Quick Start — Local (dev)
 
-### Using Docker Compose (Recommended)
+   1. Backend
 
-1. **Clone the repository**
+      ```bash
+      cd backend
+      python -m venv .venv
+      source .venv/bin/activate
+      pip install -r requirements.txt
+      # set env vars (see backend/.env.docker for examples) then:
+      uvicorn main:app --reload --host 0.0.0.0 --port 8000
+      ```
+
+   2. Frontend (Vite)
+
+      ```bash
+      cd frontend-vite
+      npm install
+      npm run dev
+      ```
+
+   3. Open
+
+      - Frontend (dev server): http://localhost:5173 (Vite default)
+      - Backend API: http://localhost:8000
+      - API docs: http://localhost:8000/docs
+
+   ## Quick Start — Docker (recommended)
+
+   1. Copy or edit environment variables in `backend/.env.docker` and `frontend-vite/.env` as needed.
+
+   2. Build and run
+
+      ```bash
+      docker compose up --build
+      ```
+
+   3. Open
+
+      - Frontend: http://localhost:3000
+      - Backend: http://localhost:8000
+      - Neo4j Browser: http://localhost:7474
+
+   Notes: MySQL is exposed on 3306 by default in the compose file. Adjust firewall or host bindings if necessary.
+
+   ## Project Structure
+
+   Top-level folders and files:
+
+   ```
+   ai-chat-docker/
+   ├── backend/           # FastAPI backend (Python)
+   ├── frontend-vite/     # React + Vite frontend
+   ├── docker-compose.yml # Docker Compose orchestration
+   └── README.md          # This file
+   ```
+
+   Backend important files and folders:
+
+   - [backend/main.py](backend/main.py): FastAPI app entrypoint; includes route registration and middleware.
+   - [backend/auth.py](backend/auth.py): Authentication helpers and JWT logic.
+   - [backend/database.py](backend/database.py): MySQL / SQLAlchemy configuration.
+   - [backend/neo4j_db.py](backend/neo4j_db.py): Neo4j driver setup and helpers.
+   - [backend/models.py](backend/models.py): SQLAlchemy models for users, chats, messages.
+   - [backend/schemas.py](backend/schemas.py): Pydantic request/response schemas.
+   - [backend/create_tables.py](backend/create_tables.py): Script to create/initialize database tables.
+   - [backend/routes/user.py](backend/routes/user.py): User auth and profile endpoints.
+   - [backend/routes/chat.py](backend/routes/chat.py): Chat-related endpoints (create, send message, history).
+   - [backend/services/llm_service.py](backend/services/llm_service.py): Calls to the language model for responses and analysis.
+   - [backend/services/chat_service.py](backend/services/chat_service.py): Chat/session business logic.
+   - [backend/services/vector_service.py](backend/services/vector_service.py): Embedding generation and vector search helpers.
+   - [backend/services/topic_service.py](backend/services/topic_service.py): Topic extraction and linking logic.
+   - [backend/services/title_service.py](backend/services/title_service.py): Auto-generate chat titles.
+   - [backend/requirements.txt](backend/requirements.txt): Python dependencies for the backend.
+
+   Frontend (Vite) important files and folders:
+
+   - [frontend-vite/.env](frontend-vite/.env): Frontend environment variables.
+   - [frontend-vite/.gitignore](frontend-vite/.gitignore)
+   - [frontend-vite/Dockerfile](frontend-vite/Dockerfile)
+   - [frontend-vite/eslint.config.js](frontend-vite/eslint.config.js)
+   - [frontend-vite/index.html](frontend-vite/index.html): App HTML shell.
+   - [frontend-vite/nginx.conf](frontend-vite/nginx.conf)
+   - [frontend-vite/package.json](frontend-vite/package.json)
+   - [frontend-vite/README.md](frontend-vite/README.md)
+   - [frontend-vite/vite.config.js](frontend-vite/vite.config.js)
+   - [frontend-vite/public/robots.txt](frontend-vite/public/robots.txt)
+
+   Source folder (`frontend-vite/src`):
+
+   - [frontend-vite/src/main.jsx](frontend-vite/src/main.jsx): React entrypoint.
+   - [frontend-vite/src/App.jsx](frontend-vite/src/App.jsx): Root app component.
+   - [frontend-vite/src/App.css](frontend-vite/src/App.css)
+   - [frontend-vite/src/index.css](frontend-vite/src/index.css)
+   - [frontend-vite/src/assets/](frontend-vite/src/assets): Static assets.
+
+   Pages:
+
+   - [frontend-vite/src/pages/Auth.jsx](frontend-vite/src/pages/Auth.jsx) and [frontend-vite/src/pages/Auth.css](frontend-vite/src/pages/Auth.css)
+   - [frontend-vite/src/pages/Chat.jsx](frontend-vite/src/pages/Chat.jsx) and [frontend-vite/src/pages/Chat.css](frontend-vite/src/pages/Chat.css)
+   - [frontend-vite/src/pages/ChatSidebar.jsx](frontend-vite/src/pages/ChatSidebar.jsx)
+
+   Services:
+
+   - [frontend-vite/src/services/api.js](frontend-vite/src/services/api.js): API client and helpers.
+
+   Other files:
+
+   - [docker-compose.yml](docker-compose.yml): Describes services: mysql, neo4j, backend, frontend.
+   - [frontend-vite/Dockerfile](frontend-vite/Dockerfile) and [backend/Dockerfile](backend/Dockerfile): Container build steps.
+
+   ## Environment variables
+
+   ### Setup
+
+   Three `.env.example` files are provided as templates:
+
+   - [.env.example](.env.example): Docker Compose-level vars (MySQL, Neo4j passwords, service ports).
+   - [backend/.env.example](backend/.env.example): Backend config (database, Neo4j, JWT, LLM, CORS).
+   - [frontend-vite/.env.example](frontend-vite/.env.example): Frontend config (API URL, feature flags).
+
+   **For local dev:**
    ```bash
-   git clone <repository-url>
-   cd ai-chat-docker
+   cp backend/.env.example backend/.env
+   cp frontend-vite/.env.example frontend-vite/.env
+   # Edit the .env files with your local credentials
    ```
 
-2. **Configure environment variables**
-   
-   Backend configuration in `backend/.env.docker`:
-   ```env
-   DATABASE_URL=mysql+mysqlconnector://root:password@mysql:3306/chatapp
-   NEO4J_URI=bolt://neo4j:7687
-   NEO4J_USER=neo4j
-   NEO4J_PASSWORD=sai*1304
-   SECRET_KEY=your-secret-key
-   ALGORITHM=HS256
+   **For Docker:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with Docker service credentials
    ```
 
-3. **Build and start containers**
+   ### Common Variables
+
+   - `DATABASE_URL` — e.g. mysql+mysqlconnector://root:password@mysql:3306/chatapp
+   - `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` — Neo4j connection
+   - `SECRET_KEY`, `ALGORITHM` — JWT settings
+   - `VITE_API_URL` — Frontend API endpoint (e.g. http://localhost:8000)
+
+   ## How the app works (high level)
+
+   1. A user authenticates via the backend (JWT-based flows implemented in `backend/auth.py`).
+   2. Chat sessions are created and messages are stored in MySQL (`backend/models.py`).
+   3. Neo4j stores relationships (users → chats → messages → topics) to enable graph queries (`backend/neo4j_db.py`).
+   4. Messages are sent to an LLM via `backend/services/llm_service.py` for AI responses, topic extraction, and title generation.
+   5. Embeddings are generated in `backend/services/vector_service.py` for semantic search across messages.
+
+   ## Running locally vs Docker
+
+   - Local: run the backend with Uvicorn and the frontend with Vite dev server. Use local MySQL/Neo4j instances or cloud equivalents and set `DATABASE_URL`/`NEO4J_*` accordingly.
+   - Docker: `docker compose up --build` will create MySQL and Neo4j containers and wire the backend and frontend together using the compose network.
+
+   ## Common Commands
+
+   Backend (local):
+
+   ```bash
+   cd backend
+   source .venv/bin/activate
+   uvicorn main:app --reload
+   ```
+
+   Docker Compose:
+
    ```bash
    docker compose up --build
+   docker compose down
+   docker compose logs -f backend
    ```
 
-4. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
-   - MySQL: localhost:3306
-   - Neo4j Browser: http://localhost:7474
+   Frontend (Vite):
 
-### Local Development Setup
+   ```bash
+   cd frontend-vite
+   npm install
+   npm run dev
+   ```
 
-**Backend:**
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
+   ## Troubleshooting
 
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm start
-```
+   - If containers fail to start, inspect logs: `docker compose logs -f`.
+   - Ensure ports 3000, 8000, 7474, 7687, and 3306 are available and not blocked by firewall.
+   - Check credentials in `backend/.env.docker`.
 
-## Database Schema
+   ## Notes & Next Steps
 
-### MySQL (User & Message Data)
-- **users** table: User credentials and profile
-- **chat_messages** table: Message history
+   - The README focuses on the current repo layout and quick start guidance. If you want, I can also:
+     - Add a short developer guide for adding endpoints and components,
+     - Provide example `.env` files with placeholders,
+     - Add a healthcheck / readiness docs for production readiness.
 
-### Neo4j (Graph Data)
-- **User** nodes: User information
-- **ChatSession** nodes: Chat sessions with metadata
-- **Message** nodes: Individual messages
-- **Topic** nodes: Extracted topics
-- Relationships: `HAS_CHAT`, `CONTAINS_MESSAGE`, `LABELED_WITH`
+   ---
 
-## API Endpoints
-
-### Authentication
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-- `GET /auth/me` - Get current user
-
-### Chat
-- `POST /chat/create` - Create new chat session
-- `POST /chat/{chat_id}/message` - Send message
-- `GET /chat/{chat_id}/history` - Get chat history
-- `GET /chat/sessions` - List user's chat sessions
-- `DELETE /chat/{chat_id}` - Delete chat session
-
-## Environment Variables
-
-### Backend (.env.docker)
-```
-DATABASE_URL - MySQL connection string
-NEO4J_URI - Neo4j connection URL
-NEO4J_USER - Neo4j username
-NEO4J_PASSWORD - Neo4j password
-SECRET_KEY - JWT secret key
-ALGORITHM - JWT algorithm (HS256)
-```
-
-### Frontend (.env)
-```
-REACT_APP_API_URL - Backend API base URL
-```
-
-## Technologies Used
-
-### Backend
-- FastAPI
-- SQLAlchemy
-- Neo4j Python Driver
-- python-jose (JWT)
-- passlib (password hashing)
-- httpx (HTTP client)
-- email-validator
-
-### Frontend
-- React
-- react-markdown (Markdown rendering)
-- uuid (unique identifiers)
-- CSS3
-
-### Infrastructure
-- Docker
-- Docker Compose
-- MySQL 8.0
-- Neo4j 5.19
-- Nginx (frontend reverse proxy)
-
-## Project Structure
-
-```
-ai-chat-docker/
-├── docker-compose.yml      # Service orchestration
-├── README.md              # This file
-├── backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── main.py
-│   ├── auth.py
-│   ├── database.py
-│   ├── neo4j_db.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── routes/
-│   └── services/
-└── frontend/
-    ├── Dockerfile
-    ├── nginx.conf
-    ├── package.json
-    ├── public/
-    └── src/
-```
-
-## Key Features Explained
-
-### Chat Sessions
-Users can create multiple chat sessions. Each session:
-- Is uniquely identified by a UUID
-- Stores creation timestamp
-- Contains multiple messages
-- Can have auto-generated titles
-- Links to extracted topics
-
-### Message Processing
-When a message is sent:
-1. Message is stored in MySQL
-2. Neo4j graph is updated with relationships
-3. LLM generates AI response
-4. Embeddings are created for semantic search
-5. Topics are extracted and linked
-6. Chat title is auto-generated if first message
-
-### Topic Extraction
-- Automatic detection using LLM
-- Topics are linked to messages
-- Enables topic-based browsing and filtering
-
-### Vector Search
-- Message embeddings are stored
-- Enables semantic similarity search
-- Find similar messages across conversations
-
-## Running Tests
-
-```bash
-# Backend tests
-cd backend
-pytest
-
-# Frontend tests
-cd frontend
-npm test
-```
-
-## Troubleshooting
-
-### Database Connection Issues
-- Ensure MySQL is running: `docker ps | grep mysql`
-- Check credentials in `.env.docker`
-- Verify database exists: `mysql -u root -p chatapp`
-
-### Neo4j Connection Issues
-- Ensure Neo4j is running: `docker ps | grep neo4j`
-- Access Neo4j Browser at http://localhost:7474
-- Verify credentials in `.env.docker`
-
-### CORS Issues
-- Backend CORS is configured for `localhost:3000`
-- Modify `main.py` if running on different URL
-
-### Container Won't Start
-- Check logs: `docker compose logs -f`
-- Rebuild containers: `docker compose down && docker compose up --build`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-[Add your license here]
-
-## Support
-
-For issues and questions, please open an issue in the repository.
-
----
-
-**Last Updated**: January 2026
-=======
-# ai-chat-docker
->>>>>>> 21c049f579e0fa49e008ee13fe1b24e809c11318
+   Last updated: January 2026

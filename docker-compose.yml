@@ -161,6 +161,8 @@ services:
       - backend/.env.docker
     ports:
       - "8000:8000"
+    volumes:
+      - faiss_data:/app/faiss
     depends_on:
       mysql:
         condition: service_healthy
@@ -183,6 +185,7 @@ services:
 volumes:
   ai-chat-docker_mysql_data:
   ai-chat-docker_neo4j_data:
+  faiss_data:
 
 networks:
   ai-chat-network:

@@ -9,3 +9,5 @@ neo4j
 httpx
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
+faiss-cpu
+numpy
